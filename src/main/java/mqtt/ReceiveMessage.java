@@ -1,10 +1,7 @@
 package mqtt;
 
 
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,29 +17,33 @@ public class ReceiveMessage {
 
     private final static String CLIENT_KEY = "receive";
 
+    private final static String TOPIC = "topic_test";
 
     /**
      * 阻塞方法，接收topic message。
      * connectionLost 含有自动连接设置。具体信息看Client.getClient(runMode, CLIENT_KEY)
      *
-     * @param topic
      * @param runMode
      */
-    public void receiveMessage(String topic, RunMode runMode) {
-        logger.info("topic :" + topic);
+    public void receiveMessage(RunMode runMode) {
+        logger.info("topic :" + TOPIC);
         logger.info("run mode :" + runMode.toString());
 
         try {
-
-            Client.getClient(runMode, CLIENT_KEY).subscribe(topic);
+            Client.getClient(runMode, CLIENT_KEY).subscribe(TOPIC);
             Client.getClient(runMode, CLIENT_KEY).setCallback(new MqttCallback() {
                 @Override
                 public void connectionLost(Throwable cause) {
                     logger.info("connect is lost");
-                    try {
-                        Client.getClient(runMode, CLIENT_KEY).subscribe(topic);
-                    } catch (MqttException e) {
-                        e.printStackTrace();
+                    while (!Client.getClient(runMode, CLIENT_KEY).isConnected()) {
+                        try {
+                            Client.getClient(runMode, CLIENT_KEY).connect();
+                            Client.getClient(runMode, CLIENT_KEY).subscribe(TOPIC);
+                        } catch (MqttException e) {
+                            e.printStackTrace();
+                            logger.info("MqttException:" + e);
+                            logger.info("reconnect is now");
+                        }
                     }
                 }
 
@@ -53,6 +54,7 @@ public class ReceiveMessage {
 
                 @Override
                 public void deliveryComplete(IMqttDeliveryToken token) {
+                    System.out.println("aaa==" + token.isComplete());
 
                 }
             });

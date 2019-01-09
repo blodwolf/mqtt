@@ -17,30 +17,31 @@ public class SendMessage {
 
     private final static String CLIENT_KEY = "send";
 
+    private final static String TOPIC = "topic_test";
+
 
     /**
      * 发送消息 以CLIENT_KEY的客户端进行发送
      *
-     * @param topic   主题
      * @param message 消息内容
      * @param runMode 运行模式
      */
-    public void sendMessage(String topic, String message, RunMode runMode) {
-        logger.info("topic :" + topic);
+    public static void sendMessage(String message, RunMode runMode) {
+        logger.info("topic :" + TOPIC);
         logger.info("message :" + message);
         logger.info("run mode :" + runMode.toString());
 
-        if (runMode.getTopics().indexOf(topic) == -1) {
-            logger.info("the topic is not exists with:" + topic);
-            return;
-        }
+//        if (runMode.getTopics().indexOf(topic) == -1) {
+//            logger.info("the topic is not exists with:" + topic);
+//            return;
+//        }
         MqttMessage mqttMessage = new MqttMessage(message.getBytes());
         mqttMessage.setQos(runMode.getQos());
         try {
-            Client.getClient(runMode, CLIENT_KEY).publish(topic, mqttMessage);
+            Client.getClient(runMode, CLIENT_KEY).publish(TOPIC, mqttMessage);
         } catch (MqttException e) {
             logger.info("mqtt message send exception");
-            logger.info("topic:" + topic + "message:" + message + "runMode:" + runMode);
+            logger.info("topic:" + TOPIC + "message:" + message + "runMode:" + runMode);
             logger.info("" + e.toString());
             e.printStackTrace();
         }

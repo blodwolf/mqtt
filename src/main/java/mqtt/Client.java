@@ -24,7 +24,7 @@ public class Client {
     private final static long SLEEP_TIME = 1000;
 
     //客户端连接缓存
-    private static Map<String, MqttClient> clientMap = new HashMap<String, MqttClient>();
+    private final static Map<String, MqttClient> clientMap = new HashMap<>();
 
 
     /**
@@ -38,7 +38,7 @@ public class Client {
         try {
             MqttClient client = new MqttClient(runMode.getBrokerUrl(), runMode.getMode() + "/" + getHost() + "/" + clientType, persistence);
             MqttConnectOptions opts = new MqttConnectOptions();/**/
-            opts.setCleanSession(false);
+            opts.setCleanSession(true);
             client.connect(opts);
             clientMap.put(clientType, client);
             logger.info("client is connect");
@@ -51,7 +51,6 @@ public class Client {
                 e1.printStackTrace();
             }
             createClient(runMode, clientType);
-
         }
     }
 
@@ -63,16 +62,23 @@ public class Client {
      * @return MqttClient
      */
     public static MqttClient getClient(RunMode runMode, String clientType) {
-        if (clientMap.get(clientType) != null && !clientMap.get(clientType).isConnected()) {
+        if (clientMap.get(clientType) == null) {
             synchronized (Client.class) {
-                if (clientMap.get(clientType) != null && !clientMap.get(clientType).isConnected()) {
+                if (clientMap.get(clientType) == null) {
                     createClient(runMode, clientType);
                 }
             }
         }
+
         return clientMap.get(clientType);
     }
 
+
+    /**
+     * 获取本机IP地址
+     *
+     * @return 主机名/ip
+     */
     private static String getHost() {
         try {
             return InetAddress.getLocalHost().toString();
